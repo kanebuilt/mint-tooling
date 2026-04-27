@@ -1,0 +1,41 @@
+name: Welcome first-time contributors
+
+on:
+  issues:
+    types: [opened]
+  pull_request_target:
+    types: [opened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  welcome:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Welcome first-time contributor
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const author = context.payload.issue?.user.login || context.payload.pull_request?.user.login;
+            if (!author) return;
+
+            const itemNumber = context.payload.issue?.number || context.payload.pull_request?.number;
+            const itemType = context.payload.issue ? 'issue' : 'pull request';
+            const query = `repo:${context.repo.owner}/${context.repo.repo} author:${author}`;
+
+            const searchResult = await github.rest.search.issuesAndPullRequests({ q: query });
+            const totalCount = searchResult.data.total_count;
+
+            if (totalCount <= 1) {
+              const body = `\` 🎉 \` **Welcome!** Thanks for opening your first ${itemType} in this repository. If you need any help, feel free to ask here.`;
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: itemNumber,
+                body,
+              });
+            }
