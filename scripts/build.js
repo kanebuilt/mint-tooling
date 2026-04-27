@@ -130,6 +130,12 @@ const detectClassName = (cleanedCode, capturedClassName) => {
   return toClassName(id);
 };
 
+const unwrapBundleIIFE = (code) => {
+  const trimmed = code.trim();
+  const match = trimmed.match(/^\(\(\)\s*=>\s*{\n([\s\S]*)\n}\)\(\);$/);
+  return match ? match[1] : code;
+};
+
 const buildBundle = async () => {
   const entrySource = sourceFiles.map((fileName) => `import "./${fileName}";`).join("\n");
   const result = await build({
@@ -150,7 +156,8 @@ const buildBundle = async () => {
 
   const bundledCode = result.outputFiles[0].text;
   const { code: cleanedCode, capturedClassName } = removeScratchRegistrations(bundledCode);
-  const className = detectClassName(cleanedCode, capturedClassName);
+  const unwrappedCode = unwrapBundleIIFE(cleanedCode);
+  const className = detectClassName(unwrappedCode, capturedClassName);
 
   const headerLines = [
     `// Name: ${name}`,
@@ -174,7 +181,7 @@ const buildBundle = async () => {
 (function (Scratch) {
     'use strict';
 
-${cleanedCode
+${unwrappedCode
   .split("\n")
   .map((line) => (line ? `    ${line}` : ""))
   .join("\n")}
