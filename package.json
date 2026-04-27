@@ -1,0 +1,23 @@
+{
+  "name": "@kanebuilt/mint-tooling",
+  "version": "0.1.0",
+  "description": "Develop TurboWarp extensions using bundling",
+  "homepage": "https://github.com/kanebuilt/mint-tooling",
+  "bugs": {
+    "url": "https://github.com/kanebuilt/mint-tooling/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanebuilt/mint-tooling.git"
+  },
+  "license": "LGPL-3.0-only",
+  "author": "KaneBuilt",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {}
+}
