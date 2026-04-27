@@ -29,11 +29,23 @@ try {
   gitRemote = null;
 }
 
-const sourceFiles = fs
-  .readdirSync(srcDir, { withFileTypes: true })
-  .filter((entry) => entry.isFile() && /\.(m?js)$/i.test(entry.name))
-  .map((entry) => entry.name)
-  .sort();
+const walkSourceFiles = (dir, baseDir = dir) => {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...walkSourceFiles(fullPath, baseDir));
+    } else if (entry.isFile() && /\.(m?js)$/i.test(entry.name)) {
+      files.push(path.relative(baseDir, fullPath).replace(/\\/g, "/"));
+    }
+  }
+
+  return files;
+};
+
+const sourceFiles = walkSourceFiles(srcDir).sort();
 
 const walkNodes = (node, visitor) => {
   if (!node || typeof node !== "object") return;
@@ -133,7 +145,17 @@ const detectClassName = (cleanedCode, capturedClassName) => {
 const unwrapBundleIIFE = (code) => {
   const trimmed = code.trim();
   const match = trimmed.match(/^\(\(\)\s*=>\s*{\n([\s\S]*)\n}\)\(\);$/);
-  return match ? match[1] : code;
+
+  if (!match) {
+    const preview = trimmed.slice(0, 200).replace(/\s+/g, " ");
+    throw new Error(
+      "Unexpected bundle format; unable to unwrap IIFE. " +
+        "Ensure esbuild output is a top-level IIFE (format: \"iife\") or update unwrapBundleIIFE. " +
+        `Bundle preview: ${preview}`
+    );
+  }
+
+  return match[1];
 };
 
 const buildBundle = async () => {
