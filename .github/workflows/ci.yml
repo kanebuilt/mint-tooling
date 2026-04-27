@@ -25,12 +25,12 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
-          package-manager-cache: pnpm
+          cache-dependency-path: package.json
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.32.1
+      - name: Setup pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.32.1 --activate
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
