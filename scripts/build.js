@@ -74,7 +74,10 @@ const removeScratchRegistrations = (code) => {
       callee.object.object.name === "Scratch"
     ) {
       const registeredClass = expression.arguments[0];
-      if (registeredClass?.type === "NewExpression" && registeredClass.callee.type === "Identifier") {
+      if (
+        registeredClass?.type === "NewExpression" &&
+        registeredClass.callee.type === "Identifier"
+      ) {
         capturedClassName = registeredClass.callee.name;
       }
       magic.remove(node.start, node.end);
@@ -172,9 +175,9 @@ const buildBundle = async () => {
     'use strict';
 
 ${cleanedCode
-    .split("\n")
-    .map((line) => (line ? `    ${line}` : ""))
-    .join("\n")}
+  .split("\n")
+  .map((line) => (line ? `    ${line}` : ""))
+  .join("\n")}
 
     Scratch.extensions.register(new ${className}());
 })(Scratch);
