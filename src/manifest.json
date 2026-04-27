@@ -2,8 +2,8 @@
   "name": "Dictionaries Pro",
   "id": "triflareDictionariesPro",
   "description": "Advanced dictionary and array management.",
-  "author": "AuthorName",
-  "authorLink": "https://github.com/authorname",
+  "author": "KaneBuilt",
+  "authorLink": "https://github.com/kanebuilt",
   "license": "MIT",
-  "version": "1.0.0"
+  "version": "0.1.0"
 }

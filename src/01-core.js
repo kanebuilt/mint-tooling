@@ -5,7 +5,7 @@ import {
   getDictionaryValue,
 } from "./03-logic.js";
 
-class tfDictionariesPro {
+class TfDictionariesPro {
   getInfo() {
     return {
       id: "triflareDictionariesPro",
@@ -63,8 +63,8 @@ class tfDictionariesPro {
   }
 
   keys(args) {
-    return listDictionaryKeys(args.DICT).join(", ");
+    return listDictionaryKeys(args.DICT).join("\n");
   }
 }
 
-Scratch.extensions.register(new tfDictionariesPro());
+Scratch.extensions.register(new TfDictionariesPro());

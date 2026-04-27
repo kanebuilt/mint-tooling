@@ -1,7 +1,9 @@
 module.exports = [
   {
-    files: ["**/*.js"],
     ignores: ["dist/**", "node_modules/**"],
+  },
+  {
+    files: ["**/*.js"],
     languageOptions: {
       parserOptions: {
         ecmaVersion: "latest",
@@ -34,6 +36,10 @@ module.exports = [
   {
     files: ["src/**/*.js"],
     languageOptions: {
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+      },
       globals: {
         Scratch: "readonly",
       },
