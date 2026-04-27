@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+      - name: Determine built artifact path
+        id: artifact
+        run: |
+          FILE=$(node -e 'const path = require("path"); const m = require("./src/manifest.json"); const id = m.id || "extension"; console.log(path.join("dist", `${id}.js`));')
+          BASENAME=$(basename "$FILE")
+          echo "artifact=$FILE" >> "$GITHUB_OUTPUT"
+          echo "artifact_name=$BASENAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
+          body: "Release built extension artifact for ${{ github.ref_name }}."
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload release asset
+        uses: actions/upload-release-asset@v2
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{ steps.artifact.outputs.artifact }}
+          asset_name: ${{ steps.artifact.outputs.artifact_name }}
+          asset_content_type: application/javascript
