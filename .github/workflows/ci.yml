@@ -20,18 +20,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v5
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
-          cache-dependency-path: package.json
-
+      # Step 1: Enable Corepack so the system knows what 'pnpm' is
       - name: Setup pnpm via Corepack
         run: |
           corepack enable
           corepack prepare pnpm@10.32.1 --activate
 
+      # Step 2: Setup Node and point the cache to the now-available pnpm
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+          # It's better to use the lockfile as the cache key
+          cache-dependency-path: pnpm-lock.yaml
+
+      # Step 3: Install dependencies using the frozen lockfile for consistency
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
