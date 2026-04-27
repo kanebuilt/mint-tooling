@@ -19,9 +19,4 @@ function listDictionaryKeys(dictName) {
   return Array.from(ensureDictionary(dictName).keys());
 }
 
-export {
-  setDictionaryValue,
-  getDictionaryValue,
-  dictionarySize,
-  listDictionaryKeys,
-};
+export { setDictionaryValue, getDictionaryValue, dictionarySize, listDictionaryKeys };

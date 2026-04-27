@@ -8,8 +8,7 @@ const distDir = path.join(rootDir, "dist");
 const manifestPath = path.join(srcDir, "manifest.json");
 
 const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
-const { name, id, description, author, authorLink, license, version } =
-  manifest;
+const { name, id, description, author, authorLink, license, version } = manifest;
 void version;
 
 let gitRemote = null;
@@ -38,10 +37,7 @@ const stripModuleSyntax = (code) =>
     .replace(/^\s*export\s+/gm, "");
 
 const stripRegistrations = (code) =>
-  code.replace(
-    /^\s*Scratch\.extensions\.register\s*\([\s\S]*?\)\s*;?\s*$/gm,
-    "",
-  );
+  code.replace(/^\s*Scratch\.extensions\.register\s*\([\s\S]*?\)\s*;?\s*$/gm, "");
 
 const bundledCode = sourceFiles
   .map((fileName) => {
@@ -61,9 +57,7 @@ const toClassName = (value) => {
     .split(/[^a-zA-Z0-9_$]+/)
     .filter(Boolean);
 
-  const joined = parts
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join("");
+  const joined = parts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join("");
 
   if (!joined) return "Extension";
   return /^[A-Za-z_$]/.test(joined) ? joined : `_${joined}`;
