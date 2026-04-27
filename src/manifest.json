@@ -1,7 +1,7 @@
 {
   "name": "Dictionaries Pro",
-  "id": "triflareDictionariesPro",
-  "description": "Advanced dictionary and array management.",
+  "id": "DictPro",
+  "description": "Advanced dictionary and array management. Tech demo for Mint.",
   "author": "KaneBuilt",
   "authorLink": "https://github.com/kanebuilt",
   "license": "MIT",
