@@ -1,47 +1,52 @@
-import { dictionarySize, listDictionaryKeys, setDictionaryValue, getDictionaryValue } from './03-logic.js';
+import {
+  dictionarySize,
+  listDictionaryKeys,
+  setDictionaryValue,
+  getDictionaryValue,
+} from "./03-logic.js";
 
 class tfDictionariesPro {
   getInfo() {
     return {
-      id: 'triflareDictionariesPro',
-      name: 'Dictionaries Pro',
+      id: "triflareDictionariesPro",
+      name: "Dictionaries Pro",
       blocks: [
         {
-          opcode: 'setValue',
+          opcode: "setValue",
           blockType: Scratch.BlockType.COMMAND,
-          text: 'set key [KEY] in dictionary [DICT] to [VALUE]',
+          text: "set key [KEY] in dictionary [DICT] to [VALUE]",
           arguments: {
-            KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'score' },
-            DICT: { type: Scratch.ArgumentType.STRING, defaultValue: 'player' },
-            VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: '100' }
-          }
+            KEY: { type: Scratch.ArgumentType.STRING, defaultValue: "score" },
+            DICT: { type: Scratch.ArgumentType.STRING, defaultValue: "player" },
+            VALUE: { type: Scratch.ArgumentType.STRING, defaultValue: "100" },
+          },
         },
         {
-          opcode: 'getValue',
+          opcode: "getValue",
           blockType: Scratch.BlockType.REPORTER,
-          text: 'get key [KEY] from dictionary [DICT]',
+          text: "get key [KEY] from dictionary [DICT]",
           arguments: {
-            KEY: { type: Scratch.ArgumentType.STRING, defaultValue: 'score' },
-            DICT: { type: Scratch.ArgumentType.STRING, defaultValue: 'player' }
-          }
+            KEY: { type: Scratch.ArgumentType.STRING, defaultValue: "score" },
+            DICT: { type: Scratch.ArgumentType.STRING, defaultValue: "player" },
+          },
         },
         {
-          opcode: 'size',
+          opcode: "size",
           blockType: Scratch.BlockType.REPORTER,
-          text: 'number of keys in dictionary [DICT]',
+          text: "number of keys in dictionary [DICT]",
           arguments: {
-            DICT: { type: Scratch.ArgumentType.STRING, defaultValue: 'player' }
-          }
+            DICT: { type: Scratch.ArgumentType.STRING, defaultValue: "player" },
+          },
         },
         {
-          opcode: 'keys',
+          opcode: "keys",
           blockType: Scratch.BlockType.REPORTER,
-          text: 'keys in dictionary [DICT]',
+          text: "keys in dictionary [DICT]",
           arguments: {
-            DICT: { type: Scratch.ArgumentType.STRING, defaultValue: 'player' }
-          }
-        }
-      ]
+            DICT: { type: Scratch.ArgumentType.STRING, defaultValue: "player" },
+          },
+        },
+      ],
     };
   }
 
@@ -58,7 +63,7 @@ class tfDictionariesPro {
   }
 
   keys(args) {
-    return listDictionaryKeys(args.DICT).join(', ');
+    return listDictionaryKeys(args.DICT).join(", ");
   }
 }
 

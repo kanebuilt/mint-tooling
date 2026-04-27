@@ -17,7 +17,12 @@
   },
   "scripts": {
     "build": "node scripts/build.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write .",
+    "lint": "eslint . --ext .js"
   },
-  "devDependencies": {}
+  "dependencies": {
+    "eslint": "^10.2.1",
+    "prettier": "^3.8.3"
+  }
 }

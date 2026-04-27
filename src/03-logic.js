@@ -1,4 +1,4 @@
-import { ensureDictionary } from './02-storage.js';
+import { ensureDictionary } from "./02-storage.js";
 
 function setDictionaryValue(dictName, key, value) {
   const dict = ensureDictionary(dictName);
@@ -8,7 +8,7 @@ function setDictionaryValue(dictName, key, value) {
 function getDictionaryValue(dictName, key) {
   const dict = ensureDictionary(dictName);
   const value = dict.get(String(key));
-  return value === undefined ? '' : value;
+  return value === undefined ? "" : value;
 }
 
 function dictionarySize(dictName) {
@@ -23,5 +23,5 @@ export {
   setDictionaryValue,
   getDictionaryValue,
   dictionarySize,
-  listDictionaryKeys
+  listDictionaryKeys,
 };

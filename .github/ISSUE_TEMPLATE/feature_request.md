@@ -3,26 +3,26 @@ name: "Feature Request"
 about: Suggest an idea for a KaneBuilt project.
 title: "Feature: "
 labels: enhancement
-assignees: ''
+assignees: ""
 ---
 
-## ` ✨ ` Overview
+## `✨` Overview
 
 <!-- Create an overview on what this feature would do. Think: What would it add that this repository doesn't already have? -->
 
-## ` 💡 ` The "Why"
+## `💡` The "Why"
 
 <!-- Why do people need this feature? -->
 
-## ` 🛠 ` Proposed Solution
+## `🛠` Proposed Solution
 
 <!-- Not exactly needed, but we'd like to see how you would add it! -->
 
-## ` ☑️ ` Alternatives
+## `☑️` Alternatives
 
 <!-- If we don't agree with your specific take, you can always suggest alternatives here. -->
 
-## ` ☑️ ` Checklist
+## `☑️` Checklist
 
 - [ ] I have checked if this is already a planned feature, and it's not.
-- [ ] I understand that KaneBuilt prioritizes *quality over quantity*.
+- [ ] I understand that KaneBuilt prioritizes _quality over quantity_.

@@ -20,7 +20,7 @@ See the [table of contents](./docs/toc.md) for a more practical guide on this pr
 
 ## Licensing
 
-Template is happy to be Free Software. *Free software* means that the software's users have freedom. Specifically, free software means users have the four essential freedoms: (0) to run the program, (1) to study and change the program in source code form, (2) to redistribute exact copies, and (3) to distribute modified versions. Read more at <https://www.gnu.org/licenses/>.
+Template is happy to be Free Software. _Free software_ means that the software's users have freedom. Specifically, free software means users have the four essential freedoms: (0) to run the program, (1) to study and change the program in source code form, (2) to redistribute exact copies, and (3) to distribute modified versions. Read more at <https://www.gnu.org/licenses/>.
 
 <p align="center">
   <img src="./assets/lgpl.png" alt="GNU LGPL v2.1 logo">
