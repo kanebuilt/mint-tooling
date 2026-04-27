@@ -1,0 +1,9 @@
+{
+  "name": "Dictionaries Pro",
+  "id": "triflareDictionariesPro",
+  "description": "Advanced dictionary and array management.",
+  "author": "AuthorName",
+  "authorLink": "https://github.com/authorname",
+  "license": "MIT",
+  "version": "1.0.0"
+}
