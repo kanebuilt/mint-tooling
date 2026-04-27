@@ -1,0 +1,10 @@
+{
+  "name": "mint-tooling",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Mint bundling toolchain for TurboWarp extensions.",
+  "license": "LGPL-2.1-or-later",
+  "scripts": {
+    "build": "node scripts/build.js"
+  }
+}
