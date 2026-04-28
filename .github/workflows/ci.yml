@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  # Triggered by the format job after it auto-commits formatting fixes to a PR
+  # branch, so that the new commit gets its own CI check run and satisfies
+  # branch-protection merge requirements.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -12,10 +16,18 @@ permissions:
 jobs:
   format:
     runs-on: ubuntu-latest
-    # Skip for fork PRs — GITHUB_TOKEN cannot push to the upstream branch
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    # Skip for fork PRs — GITHUB_TOKEN cannot push to the upstream branch.
+    # For push, pull_request, and workflow_dispatch (re-trigger after format
+    # commit) the job runs normally; if the code is already formatted it will
+    # find no changes and skip the push/dispatch steps.
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: write
+      # Needed to dispatch a new ci.yml run after pushing a format commit
+      actions: write
 
     steps:
       - name: Checkout repository
@@ -44,16 +56,35 @@ jobs:
         run: pnpm run format
 
       - name: Commit formatting changes
+        id: commit
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
           if git diff --staged --quiet; then
             echo "No formatting changes needed."
+            echo "pushed=false" >> "$GITHUB_OUTPUT"
           else
             git commit -m "style: auto-format code"
             git push
+            echo "pushed=true" >> "$GITHUB_OUTPUT"
           fi
+
+      # When format pushes a new commit to a PR branch, GITHUB_TOKEN cannot
+      # trigger a new workflow run automatically (GitHub prevents loops).
+      # Re-dispatch ci.yml on the PR branch so the new commit gets proper
+      # CI check runs and satisfies branch-protection merge requirements.
+      - name: Re-trigger CI for format commit
+        if: steps.commit.outputs.pushed == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "ci.yml",
+              ref: context.payload.pull_request.head.ref,
+            });
 
   build:
     runs-on: ubuntu-latest
