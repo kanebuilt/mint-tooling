@@ -1,0 +1,72 @@
+name: PR Commands (Run)
+
+# Triggered only by commands.yml after it has validated the commenter's
+# permissions and confirmed the PR is from the same repository.
+on:
+  workflow_dispatch:
+    inputs:
+      command:
+        description: "Command to run: 'format' or 'lint'"
+        required: true
+        type: choice
+        options: [format, lint]
+      head_ref:
+        description: "PR head branch name"
+        required: true
+      head_sha:
+        description: "PR head commit SHA (pinned at dispatch time to prevent TOCTOU)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  run-command:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch (pinned SHA)
+        uses: actions/checkout@v4
+        with:
+          # Pin to the SHA that was captured when permissions were validated.
+          # If the PR branch advances between dispatch and execution the push
+          # below will be rejected (non-fast-forward), keeping the repo safe.
+          ref: ${{ inputs.head_sha }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.32.1 --activate
+
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run format
+        if: inputs.command == 'format'
+        run: pnpm run format
+
+      - name: Run lint --fix
+        if: inputs.command == 'lint'
+        run: pnpm run lint --fix
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "style: apply CI command changes"
+            # Push back to the named branch from the pinned SHA checkout.
+            # Fails if the branch advanced since dispatch (protects against races).
+            git push origin HEAD:refs/heads/${{ inputs.head_ref }}
+          fi
