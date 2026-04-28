@@ -4,6 +4,6 @@
   "description": "Advanced dictionary and array management. Tech demo for Mint.",
   "author": "KaneBuilt",
   "authorLink": "https://github.com/kanebuilt",
-  "license": "MIT",
+  "license": "LGPL-2.0-only",
   "version": "0.1.0"
 }
