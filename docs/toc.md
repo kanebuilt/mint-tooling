@@ -1,6 +1,6 @@
 # Mint Documentation
 
-This serves as the user-level documentation for Mint.
+User-level documentation for Mint is not yet available.
 
 ---
 
@@ -10,6 +10,6 @@ The table of contents, in no particular order:
 
 > [!IMPORTANT]
 >
-> No user-level documentation has been written yet. This is a work in progress, and the documentation will be added as the project develops.
+> User-level documentation for Mint is not yet available.
 
 > For an overview of the project, see its [README](./../README.md).
