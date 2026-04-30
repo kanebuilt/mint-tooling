@@ -1,6 +1,6 @@
 {
   "name": "@kanebuilt/mint-tooling",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Develop TurboWarp extensions using bundling",
   "homepage": "https://github.com/kanebuilt/mint-tooling",
   "bugs": {
