@@ -1,8 +1,6 @@
-<!-- Use your code editor's Find tool to replace all mentions of "Template" (match case) with your project's name -->
+# Mint Documentation
 
-# Template Documentation
-
-This serves as the user-level documentation for Template.
+This serves as the user-level documentation for Mint.
 
 ---
 
@@ -10,6 +8,8 @@ This serves as the user-level documentation for Template.
 
 The table of contents, in no particular order:
 
-<!-- - [Doing Something](./doing-something.md) -->
+> [!IMPORTANT]
+>
+> No user-level documentation has been written yet. This is a work in progress, and the documentation will be added as the project develops.
 
 > For an overview of the project, see its [README](./../README.md).
