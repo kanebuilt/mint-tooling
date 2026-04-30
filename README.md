@@ -12,6 +12,7 @@ The Mint tooling is a new bundling toolchain for TurboWarp extensions. It allows
 
 - **Simple & modern:** Write your extension using modern JavaScript syntax and features. No huge dependencies needed!
 - **Bundling:** Bundle your extension into a single file that can be loaded by TurboWarp. No more monolithic source files!
+- **TurboWarp configs:** If you're used to the dev environment that TurboWarp/extensions provides, you'll be right at home with Mint, as it has most of the repository's ESLint and Prettier configs pre-installed!
 
 ## Documentation
 
