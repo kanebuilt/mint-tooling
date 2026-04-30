@@ -70,20 +70,24 @@ jobs:
             echo "pushed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      # When format pushes a new commit to a PR branch, GITHUB_TOKEN cannot
-      # trigger a new workflow run automatically (GitHub prevents loops).
-      # Re-dispatch ci.yml on the PR branch so the new commit gets proper
-      # CI check runs and satisfies branch-protection merge requirements.
+      # When format pushes a new commit, GITHUB_TOKEN cannot trigger a new
+      # workflow run automatically (GitHub prevents loops). Re-dispatch ci.yml
+      # on the same branch so the new commit gets proper CI check runs and
+      # satisfies branch-protection merge requirements.
       - name: Re-trigger CI for format commit
-        if: steps.commit.outputs.pushed == 'true' && github.event_name == 'pull_request'
+        if: steps.commit.outputs.pushed == 'true'
         uses: actions/github-script@v7
         with:
           script: |
+            const ref =
+              context.eventName === "pull_request"
+                ? context.payload.pull_request.head.ref
+                : context.ref.replace("refs/heads/", "");
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "ci.yml",
-              ref: context.payload.pull_request.head.ref,
+              ref,
             });
 
   build:
