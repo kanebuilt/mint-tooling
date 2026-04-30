@@ -31,7 +31,7 @@ module.exports = [
   {
     ignores: ["dist/**", "node_modules/**"],
   },
-  // Base on eslint recommended
+  // Based on ESLint recommended
   js.configs.recommended,
 
   // Common for all files
@@ -39,10 +39,6 @@ module.exports = [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: "script",
-      globals: {
-        ...globals.node,
-        ...globals.commonjs,
-      },
     },
     rules: {
       "no-console": "off",
@@ -137,7 +133,7 @@ module.exports = [
           "no-new-syntax": createQueryRule([
             {
               selector: 'AssignmentExpression[operator="??="]',
-              message: "x ??= y syntax is too new; use x = x ?? y intead",
+              message: "x ??= y syntax is too new; use x = x ?? y instead",
             },
             {
               selector: "MemberExpression[object.name=Object][property.name=hasOwn]",
@@ -244,7 +240,7 @@ module.exports = [
               selector:
                 "CallExpression[callee.object.object.name=Scratch][callee.object.property.name=translate][callee.property.name=setup]",
               message:
-                "Do not call Scratch.translate.setup() yourself. Just use Scratch.translate() and let the build script handle it",
+                "Do not call Scratch.translate.setup() yourself. The build script does not currently analyze translation strings, so use Scratch.translate() directly.",
             },
           ]),
           "no-translate-alias": createQueryRule([
@@ -252,13 +248,13 @@ module.exports = [
               selector:
                 "VariableDeclarator[init.type=MemberExpression][init.object.name=Scratch][init.property.name=translate]",
               message:
-                "Do not store Scratch.translate in a variable as the build script will not be able to statically analyze the strings",
+                "Do not store Scratch.translate in a variable. The build script cannot statically analyze translation strings this way.",
             },
             {
               selector:
                 "AssignmentExpression[right.type=MemberExpression][right.object.name=Scratch][right.property.name=translate]",
               message:
-                "Do not store Scratch.translate in a variable as the build script will not be able to statically analyze the strings",
+                "Do not store Scratch.translate in a variable. The build script cannot statically analyze translation strings this way.",
             },
           ]),
           "should-translate": createQueryRule([
@@ -281,7 +277,7 @@ module.exports = [
             },
             {
               selector:
-                "MethodDefinition[key.name=docsURI] Property[key.name=id][value.callee.property.name=translate]",
+                "MethodDefinition[key.name=getInfo] Property[key.name=docsURI][value.callee.property.name=translate]",
               message: "Do not translate docsURI",
             },
             {
