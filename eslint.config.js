@@ -101,6 +101,18 @@ module.exports = [
     },
   },
 
+  // For config files and tooling scripts
+  {
+    files: ["eslint.config.js", "prettier.config.js", ".eslintrc.js", ".prettierrc.js"],
+    languageOptions: {
+      globals: {
+        ...globals.commonjs,
+        ...globals.node,
+      },
+      sourceType: "script",
+    },
+  },
+
   // For scripts
   {
     files: ["scripts/**/*.js"],
