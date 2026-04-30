@@ -5,96 +5,14 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  # Triggered by the format job after it auto-commits formatting fixes to a PR
-  # branch, so that the new commit gets its own CI check run and satisfies
-  # branch-protection merge requirements.
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
-  format:
-    runs-on: ubuntu-latest
-    # Skip for fork PRs — GITHUB_TOKEN cannot push to the upstream branch.
-    # For push, pull_request, and workflow_dispatch (re-trigger after format
-    # commit) the job runs normally; if the code is already formatted it will
-    # find no changes and skip the push/dispatch steps.
-    if: |
-      github.event_name == 'push' ||
-      github.event_name == 'workflow_dispatch' ||
-      github.event.pull_request.head.repo.full_name == github.repository
-    permissions:
-      contents: write
-      # Needed to dispatch a new ci.yml run after pushing a format commit
-      actions: write
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          # Check out the real branch so we can push back to it
-          ref: ${{ github.head_ref || github.ref_name }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Setup pnpm via Corepack
-        run: |
-          corepack enable
-          corepack prepare pnpm@10.32.1 --activate
-
-      - name: Use Node.js 22.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.x
-          cache: "pnpm"
-          cache-dependency-path: pnpm-lock.yaml
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run formatter
-        run: pnpm run format
-
-      - name: Commit formatting changes
-        id: commit
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          if git diff --staged --quiet; then
-            echo "No formatting changes needed."
-            echo "pushed=false" >> "$GITHUB_OUTPUT"
-          else
-            git commit -m "style: auto-format code"
-            git push
-            echo "pushed=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      # When format pushes a new commit, GITHUB_TOKEN cannot trigger a new
-      # workflow run automatically (GitHub prevents loops). Re-dispatch ci.yml
-      # on the same branch so the new commit gets proper CI check runs and
-      # satisfies branch-protection merge requirements.
-      - name: Re-trigger CI for format commit
-        if: steps.commit.outputs.pushed == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const ref =
-              context.eventName === "pull_request"
-                ? context.payload.pull_request.head.ref
-                : context.ref.replace("refs/heads/", "");
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "ci.yml",
-              ref,
-            });
-
   build:
     runs-on: ubuntu-latest
-    needs: [format]
-    # Always run build, even when the format job was skipped (fork PRs) or failed
-    if: always()
     strategy:
       matrix:
         node-version: [20.x, 22.x]
