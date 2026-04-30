@@ -150,7 +150,7 @@ const unwrapBundleIIFE = (code) => {
     const preview = trimmed.slice(0, 200).replace(/\s+/g, " ");
     throw new Error(
       "Unexpected bundle format; unable to unwrap IIFE. " +
-        "Ensure esbuild output is a top-level IIFE (format: \"iife\") or update unwrapBundleIIFE. " +
+        'Ensure esbuild output is a top-level IIFE (format: "iife") or update unwrapBundleIIFE. ' +
         `Bundle preview: ${preview}`
     );
   }
