@@ -31,15 +31,7 @@ declare class NDEFReader extends EventTarget {
   onreadingerror?(event: Event): void;
 }
 
-type TypedArray =
-  | Uint8Array
-  | Int8Array
-  | Uint16Array
-  | Int16Array
-  | Uint32Array
-  | Int32Array
-  | BigUint64Array
-  | BigInt64Array;
+type NFCBufferSource = ArrayBuffer | ArrayBufferView;
 
 /**
  * https://developer.mozilla.org/en-US/docs/Web/API/NDEFMessage/NDEFMessage
@@ -47,7 +39,7 @@ type TypedArray =
 declare class NDEFMessage {
   constructor(
     records: Array<{
-      data?: string | ArrayBuffer | TypedArray | DataView | NDEFRecord[];
+      data?: string | NFCBufferSource | DataView | NDEFRecord[];
       encoding?: string;
       id?: string;
       lang?: string;
@@ -63,7 +55,7 @@ declare class NDEFMessage {
  */
 declare class NDEFRecord {
   constructor(options: {
-    data?: string | ArrayBuffer | TypedArray | DataView | NDEFRecord[];
+    data?: string | NFCBufferSource | DataView | NDEFRecord[];
     encoding?: string;
     id?: string;
     lang?: string;
