@@ -52,7 +52,7 @@ declare class NDEFMessage {
       id?: string;
       lang?: string;
       mediaType?: string;
-      recordType?: string;
+      recordType: string;
     }>
   );
   readonly records: NDEFRecord[];
@@ -62,7 +62,14 @@ declare class NDEFMessage {
  * https://developer.mozilla.org/en-US/docs/Web/API/NDEFRecord
  */
 declare class NDEFRecord {
-  constructor();
+  constructor(options: {
+    data?: string | ArrayBuffer | TypedArray | DataView | NDEFRecord[];
+    encoding?: string;
+    id?: string;
+    lang?: string;
+    mediaType?: string;
+    recordType: string;
+  });
   readonly recordType: string;
   readonly mediaType: string;
   readonly id: string;
