@@ -18,12 +18,9 @@ const fail = (message) => console.log(`\x1b[31m✗\x1b[0m ${message}`);
 const contributorFiles = ["CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md"];
 
 const removeIfExists = (filePath) => {
-  try {
-    fs.rmSync(filePath, { force: true, recursive: true });
-    return true;
-  } catch {
-    return false;
-  }
+  if (!fs.existsSync(filePath)) return false;
+  fs.rmSync(filePath, { recursive: true });
+  return true;
 };
 
 const writeJson = (filePath, value) => {
@@ -80,9 +77,9 @@ const main = async () => {
   log("Mint init");
   log("");
 
-  if (!process.stdin.readable) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
     fail(
-      "Unable to prompt for input: stdin is not readable in this environment. Run this script in an interactive terminal."
+      "Unable to prompt for input: not running in an interactive terminal. Run this script directly in a TTY."
     );
     process.exitCode = 1;
     return;
@@ -174,12 +171,15 @@ const main = async () => {
       removeIfExists(path.join(srcDir, entry));
     }
 
-    const extensionClassName =
+    const extensionClassNameRaw =
       extensionId
         .split(/[^a-zA-Z0-9_$]+/)
         .filter(Boolean)
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join("") || "Extension";
+    const extensionClassName = /^[A-Za-z_$]/.test(extensionClassNameRaw)
+      ? extensionClassNameRaw
+      : `Extension${extensionClassNameRaw}`;
 
     const safeExtensionName = extensionName.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
