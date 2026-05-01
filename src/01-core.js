@@ -9,12 +9,12 @@ class DictProExtension {
   getInfo() {
     return {
       id: "DictPro",
-      name: "Dictionaries Pro",
+      name: Scratch.translate("Dictionaries Pro"),
       blocks: [
         {
           opcode: "setValue",
           blockType: Scratch.BlockType.COMMAND,
-          text: "set key [KEY] in dictionary [DICT] to [VALUE]",
+          text: Scratch.translate("set key [KEY] in dictionary [DICT] to [VALUE]"),
           arguments: {
             KEY: { type: Scratch.ArgumentType.STRING, defaultValue: "score" },
             DICT: { type: Scratch.ArgumentType.STRING, defaultValue: "player" },
@@ -24,7 +24,7 @@ class DictProExtension {
         {
           opcode: "getValue",
           blockType: Scratch.BlockType.REPORTER,
-          text: "get key [KEY] from dictionary [DICT]",
+          text: Scratch.translate("get key [KEY] from dictionary [DICT]"),
           arguments: {
             KEY: { type: Scratch.ArgumentType.STRING, defaultValue: "score" },
             DICT: { type: Scratch.ArgumentType.STRING, defaultValue: "player" },
@@ -33,7 +33,7 @@ class DictProExtension {
         {
           opcode: "size",
           blockType: Scratch.BlockType.REPORTER,
-          text: "number of keys in dictionary [DICT]",
+          text: Scratch.translate("number of keys in dictionary [DICT]"),
           arguments: {
             DICT: { type: Scratch.ArgumentType.STRING, defaultValue: "player" },
           },
@@ -41,7 +41,7 @@ class DictProExtension {
         {
           opcode: "keys",
           blockType: Scratch.BlockType.REPORTER,
-          text: "keys in dictionary [DICT]",
+          text: Scratch.translate("keys in dictionary [DICT]"),
           arguments: {
             DICT: { type: Scratch.ArgumentType.STRING, defaultValue: "player" },
           },
