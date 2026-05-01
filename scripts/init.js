@@ -72,8 +72,11 @@ const toAuthorLink = (value) => {
 const readJsonIfExists = (filePath) => {
   try {
     return JSON.parse(fs.readFileSync(filePath, "utf8"));
-  } catch {
-    return null;
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return null;
+    }
+    throw error;
   }
 };
 
