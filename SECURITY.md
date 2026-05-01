@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Supported versions that are not the current version have their own branch, i. e. `ver/0.x`, so that LTS patches can still be pushed to them. The current version is the default branch, `main`.
+Supported versions that are not the current version have their own branch, i e. `ver/0.x`, so that LTS patches can still be pushed to them. The current version is the default branch, `main`.
 
 | Version | Supported |
 | ------- | --------- |
