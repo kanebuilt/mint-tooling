@@ -8,6 +8,7 @@ const { execSync } = require("child_process");
 const rootDir = path.resolve(__dirname, "..");
 const srcDir = path.join(rootDir, "src");
 const distDir = path.join(rootDir, "dist");
+const assetsDir = path.join(rootDir, "assets");
 const manifestPath = path.join(srcDir, "manifest.json");
 const packagePath = path.join(rootDir, "package.json");
 
@@ -28,6 +29,58 @@ try {
 } catch {
   gitRemote = null;
 }
+
+const getMimeType = (filePath) => {
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeTypes = {
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".ico": "image/x-icon",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".ogg": "audio/ogg",
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".json": "application/json",
+    ".txt": "text/plain",
+    ".css": "text/css",
+    ".html": "text/html",
+  };
+  return mimeTypes[ext] || "application/octet-stream";
+};
+
+const walkAssets = (dir, baseDir = dir) => {
+  if (!fs.existsSync(dir)) return [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...walkAssets(fullPath, baseDir));
+    } else if (entry.isFile()) {
+      files.push(path.relative(baseDir, fullPath).replace(/\\/g, "/"));
+    }
+  }
+
+  return files;
+};
+
+const buildAssetMap = () => {
+  const assetFiles = walkAssets(assetsDir);
+  const assetMap = {};
+  for (const file of assetFiles) {
+    const filePath = path.join(assetsDir, file);
+    const data = fs.readFileSync(filePath);
+    const mimeType = getMimeType(file);
+    assetMap[file] = `data:${mimeType};base64,${data.toString("base64")}`;
+  }
+  return assetMap;
+};
 
 const walkSourceFiles = (dir, baseDir = dir) => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -181,6 +234,15 @@ const buildBundle = async () => {
   const unwrappedCode = unwrapBundleIIFE(cleanedCode);
   const className = detectClassName(unwrappedCode, capturedClassName);
 
+  const assetMap = buildAssetMap();
+  const assetCount = Object.keys(assetMap).length;
+  // JSON.stringify produces safely-escaped output (all special chars are escaped),
+  // making it safe to embed as a JavaScript object literal.
+  const mintDefinition =
+    `const __mintAssets__ = ${JSON.stringify(assetMap)};\n` +
+    'const mint = { asset: { get: function(name) { return __mintAssets__[name] || ""; } } };';
+  const codeWithMint = `${mintDefinition}\n${unwrappedCode}`;
+
   const headerLines = [
     `// Name: ${name}`,
     `// ID: ${id}`,
@@ -203,7 +265,7 @@ const buildBundle = async () => {
 (function (Scratch) {
     'use strict';
 
-${unwrappedCode
+${codeWithMint
   .split("\n")
   .map((line) => (line ? `    ${line}` : ""))
   .join("\n")}
@@ -216,7 +278,8 @@ ${unwrappedCode
   const outputPath = path.join(distDir, `${id || "extension"}.js`);
   fs.writeFileSync(outputPath, output, "utf8");
 
-  console.log(`✓ Bundled ${name} successfully!`);
+  const assetSuffix = assetCount > 0 ? ` with ${assetCount} asset(s)` : "";
+  console.log(`✓ Bundled ${name} successfully${assetSuffix}!`);
 };
 
 buildBundle().catch((error) => {
