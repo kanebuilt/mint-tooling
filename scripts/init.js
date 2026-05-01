@@ -129,35 +129,36 @@ const main = async () => {
       defaultValue: previousPackage.name || extensionId,
     });
 
-    const existingDevDeps = previousPackage.devDependencies || {};
     const existingScripts = previousPackage.scripts || {};
 
     const newManifest = {
+      ...previousManifest,
       name: extensionName,
       id: extensionId,
       description,
       author,
       authorLink,
       license,
-      version: previousPackage.version || previousManifest.version || "0.1.0",
+      version: previousManifest.version || previousPackage.version || "0.1.0",
     };
     writeJson(manifestPath, newManifest);
     success("Updated src/manifest.json");
 
     const newPackageJson = {
+      ...previousPackage,
       name: packageName,
-      version: previousPackage.version || "0.1.0",
       description,
       license,
       author,
       packageManager: previousPackage.packageManager || "pnpm@10.32.1",
       scripts: {
+        ...existingScripts,
         build: existingScripts.build || "node scripts/build.js",
+        init: existingScripts.init || "node scripts/init.js",
         lint: existingScripts.lint || "eslint .",
         format: existingScripts.format || "prettier --write .",
         test: existingScripts.test || 'echo "Error: no test specified" && exit 1',
       },
-      devDependencies: existingDevDeps,
     };
 
     writeJson(packagePath, newPackageJson);
@@ -183,7 +184,7 @@ const main = async () => {
 
     const safeExtensionName = extensionName.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
-    const minimalSource = `class ${extensionClassName} {\n  getInfo() {\n    return {\n      id: "${extensionId}",\n      name: "${safeExtensionName}",\n      blocks: [],\n    };\n  }\n}\n\nScratch.extensions.register(new ${extensionClassName}());\n`;
+    const minimalSource = `class ${extensionClassName} {\n  getInfo() {\n    return {\n      id: "${extensionId}",\n      name: Scratch.translate("${safeExtensionName}"),\n      blocks: [],\n    };\n  }\n}\n\nScratch.extensions.register(new ${extensionClassName}());\n`;
     fs.writeFileSync(path.join(srcDir, "index.js"), minimalSource);
     success("Replaced src/ sample with minimal extension");
 
