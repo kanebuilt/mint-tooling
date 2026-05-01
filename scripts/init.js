@@ -54,6 +54,12 @@ const slugifyId = (value) => {
   return cleaned || "my-extension";
 };
 
+const extractRepoUrl = (repository) => {
+  if (!repository) return "";
+  const url = (typeof repository === "string" ? repository : repository.url) || "";
+  return url.replace(/^git\+/, "").replace(/\.git$/, "");
+};
+
 const toAuthorLink = (value) => {
   const trimmed = String(value || "").trim();
   if (!trimmed) return "";
@@ -128,6 +134,17 @@ const main = async () => {
     const packageName = await ask(rl, "npm package name", {
       defaultValue: previousPackage.name || extensionId,
     });
+    const repoUrl = extractRepoUrl(
+      await ask(rl, "Repository URL", {
+        defaultValue: extractRepoUrl(previousPackage.repository) || "",
+      })
+    );
+    const homepage = await ask(rl, "Homepage URL", {
+      defaultValue: previousPackage.homepage || repoUrl || "",
+    });
+    const bugsUrl = await ask(rl, "Bugs URL", {
+      defaultValue: previousPackage.bugs?.url || (repoUrl ? `${repoUrl}/issues` : ""),
+    });
 
     const existingScripts = previousPackage.scripts || {};
 
@@ -150,6 +167,9 @@ const main = async () => {
       description,
       license,
       author,
+      ...(homepage ? { homepage } : {}),
+      ...(bugsUrl ? { bugs: { url: bugsUrl } } : {}),
+      ...(repoUrl ? { repository: { type: "git", url: `git+${repoUrl}.git` } } : {}),
       packageManager: previousPackage.packageManager || "pnpm@10.32.1",
       scripts: {
         ...existingScripts,
