@@ -82,7 +82,14 @@ const addAsset = (sourcePath, destName) => {
     return;
   }
 
-  const fileName = destName || path.basename(sourcePath);
+  const rawName = destName || path.basename(sourcePath);
+  const normalized = path.normalize(rawName).replace(/\\/g, "/");
+  if (normalized.startsWith("..") || path.isAbsolute(normalized)) {
+    fail(`Invalid destination name: ${rawName}`);
+    process.exitCode = 1;
+    return;
+  }
+  const fileName = normalized;
   const destPath = path.join(assetsDir, fileName);
 
   fs.mkdirSync(path.dirname(destPath), { recursive: true });

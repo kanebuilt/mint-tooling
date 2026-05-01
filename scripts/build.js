@@ -82,6 +82,36 @@ const buildAssetMap = () => {
   return assetMap;
 };
 
+const collectMintAssetGetCalls = (sourceFile) => {
+  const code = fs.readFileSync(path.join(srcDir, sourceFile), "utf8");
+  const ast = parse(code, {
+    sourceType: "module",
+    plugins: ["classProperties", "optionalChaining", "nullishCoalescing"],
+  });
+
+  const names = [];
+  walkNodes(ast, (node) => {
+    // Match: mint.asset.get("...")
+    if (
+      node.type === "CallExpression" &&
+      node.callee?.type === "MemberExpression" &&
+      node.callee.property.type === "Identifier" &&
+      node.callee.property.name === "get" &&
+      node.callee.object?.type === "MemberExpression" &&
+      node.callee.object.property.type === "Identifier" &&
+      node.callee.object.property.name === "asset" &&
+      node.callee.object.object?.type === "Identifier" &&
+      node.callee.object.object.name === "mint" &&
+      node.arguments.length > 0 &&
+      node.arguments[0].type === "StringLiteral"
+    ) {
+      names.push({ name: node.arguments[0].value, file: sourceFile });
+    }
+  });
+
+  return names;
+};
+
 const walkSourceFiles = (dir, baseDir = dir) => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const files = [];
@@ -236,11 +266,30 @@ const buildBundle = async () => {
 
   const assetMap = buildAssetMap();
   const assetCount = Object.keys(assetMap).length;
+
+  // Verify every static mint.asset.get("...") call in src/ refers to an existing asset.
+  const missingRefs = [];
+  for (const sourceFile of sourceFiles) {
+    for (const ref of collectMintAssetGetCalls(sourceFile)) {
+      if (!Object.prototype.hasOwnProperty.call(assetMap, ref.name)) {
+        missingRefs.push({ asset: ref.name, file: ref.file });
+      }
+    }
+  }
+  if (missingRefs.length > 0) {
+    for (const { asset, file } of missingRefs) {
+      console.error(`\x1b[31m✗\x1b[0m Missing asset "${asset}" referenced in ${file}`);
+    }
+    throw new Error(`Build failed: ${missingRefs.length} missing asset reference(s)`);
+  }
+
   // JSON.stringify produces safely-escaped output (all special chars are escaped),
   // making it safe to embed as a JavaScript object literal.
+  // Object.assign into Object.create(null) avoids prototype-property pollution
+  // (e.g. "toString", "__proto__") so only own asset keys return values.
   const mintDefinition =
-    `const __mintAssets__ = ${JSON.stringify(assetMap)};\n` +
-    'const mint = { asset: { get: function(name) { return __mintAssets__[name] || ""; } } };';
+    `const __mintAssets__ = Object.assign(Object.create(null), ${JSON.stringify(assetMap)});\n` +
+    'const mint = { asset: { get: function(name) { return Object.prototype.hasOwnProperty.call(__mintAssets__, name) ? __mintAssets__[name] : ""; } } };';
   const codeWithMint = `${mintDefinition}\n${unwrappedCode}`;
 
   const headerLines = [
