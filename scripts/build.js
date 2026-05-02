@@ -95,11 +95,11 @@ const collectMintAssetGetCalls = (sourceFile) => {
     if (
       node.type === "CallExpression" &&
       node.callee?.type === "MemberExpression" &&
-      node.callee.property.type === "Identifier" &&
-      node.callee.property.name === "get" &&
+      node.callee.property?.type === "Identifier" &&
+      node.callee.property?.name === "get" &&
       node.callee.object?.type === "MemberExpression" &&
-      node.callee.object.property.type === "Identifier" &&
-      node.callee.object.property.name === "asset" &&
+      node.callee.object.property?.type === "Identifier" &&
+      node.callee.object.property?.name === "asset" &&
       node.callee.object.object?.type === "Identifier" &&
       node.callee.object.object.name === "mint" &&
       node.arguments.length > 0 &&
@@ -110,6 +110,46 @@ const collectMintAssetGetCalls = (sourceFile) => {
   });
 
   return names;
+};
+
+const collectMintManifestGetCalls = (sourceFile) => {
+  const code = fs.readFileSync(path.join(srcDir, sourceFile), "utf8");
+  const ast = parse(code, {
+    sourceType: "module",
+    plugins: ["classProperties", "optionalChaining", "nullishCoalescing"],
+  });
+
+  const names = [];
+  walkNodes(ast, (node) => {
+    // Match: mint.manifest.get("...")
+    if (
+      node.type === "CallExpression" &&
+      node.callee?.type === "MemberExpression" &&
+      node.callee.property?.type === "Identifier" &&
+      node.callee.property?.name === "get" &&
+      node.callee.object?.type === "MemberExpression" &&
+      node.callee.object.property?.type === "Identifier" &&
+      node.callee.object.property?.name === "manifest" &&
+      node.callee.object.object?.type === "Identifier" &&
+      node.callee.object.object.name === "mint" &&
+      node.arguments.length > 0 &&
+      node.arguments[0].type === "StringLiteral"
+    ) {
+      names.push({ name: node.arguments[0].value, file: sourceFile });
+    }
+  });
+
+  return names;
+};
+
+const buildManifestMap = () => {
+  const manifestMap = {};
+  for (const [key, value] of Object.entries(manifest)) {
+    if (typeof value === "string" || typeof value === "number") {
+      manifestMap[key] = String(value);
+    }
+  }
+  return manifestMap;
 };
 
 const walkSourceFiles = (dir, baseDir = dir) => {
@@ -283,13 +323,32 @@ const buildBundle = async () => {
     throw new Error(`Build failed: ${missingRefs.length} missing asset reference(s)`);
   }
 
+  const manifestMap = buildManifestMap();
+
+  // Verify every static mint.manifest.get("...") call in src/ refers to an existing manifest key.
+  const missingManifestRefs = [];
+  for (const sourceFile of sourceFiles) {
+    for (const ref of collectMintManifestGetCalls(sourceFile)) {
+      if (!Object.prototype.hasOwnProperty.call(manifestMap, ref.name)) {
+        missingManifestRefs.push({ key: ref.name, file: ref.file });
+      }
+    }
+  }
+  if (missingManifestRefs.length > 0) {
+    for (const { key, file } of missingManifestRefs) {
+      console.error(`\x1b[31m✗\x1b[0m Missing manifest key "${key}" referenced in ${file}`);
+    }
+    throw new Error(`Build failed: ${missingManifestRefs.length} missing manifest key reference(s)`);
+  }
+
   // JSON.stringify produces safely-escaped output (all special chars are escaped),
   // making it safe to embed as a JavaScript object literal.
   // Object.assign into Object.create(null) avoids prototype-property pollution
-  // (e.g. "toString", "__proto__") so only own asset keys return values.
+  // (e.g. "toString", "__proto__") so only own asset/manifest keys return values.
   const mintDefinition =
     `const __mintAssets__ = Object.assign(Object.create(null), ${JSON.stringify(assetMap)});\n` +
-    'const mint = { asset: { get: function(name) { return Object.prototype.hasOwnProperty.call(__mintAssets__, name) ? __mintAssets__[name] : ""; } } };';
+    `const __mintManifest__ = Object.assign(Object.create(null), ${JSON.stringify(manifestMap)});\n` +
+    'const mint = { asset: { get: function(name) { return Object.prototype.hasOwnProperty.call(__mintAssets__, name) ? __mintAssets__[name] : ""; } }, manifest: { get: function(key) { return Object.prototype.hasOwnProperty.call(__mintManifest__, key) ? __mintManifest__[key] : ""; } } };';
   const codeWithMint = `${mintDefinition}\n${unwrappedCode}`;
 
   const headerLines = [
