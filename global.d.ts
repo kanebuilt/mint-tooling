@@ -108,4 +108,13 @@ declare const mint: {
      */
     get(name: string): string;
   };
+  manifest: {
+    /**
+     * Returns the string value of the given key from `src/manifest.json`.
+     * Build fails if the key does not exist in the manifest.
+     * @example mint.manifest.get('name') // returns the extension name
+     * @example mint.manifest.get('version') // returns the extension version
+     */
+    get(key: string): string;
+  };
 };
