@@ -308,7 +308,9 @@ const buildBundle = async () => {
     for (const { key, file } of missingManifestRefs) {
       console.error(`\x1b[31m✗\x1b[0m Missing manifest key "${key}" referenced in ${file}`);
     }
-    throw new Error(`Build failed: ${missingManifestRefs.length} missing manifest key reference(s)`);
+    throw new Error(
+      `Build failed: ${missingManifestRefs.length} missing manifest key reference(s)`
+    );
   }
 
   // JSON.stringify produces safely-escaped output (all special chars are escaped),

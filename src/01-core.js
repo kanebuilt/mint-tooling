@@ -8,8 +8,8 @@ import {
 class DictProExtension {
   getInfo() {
     return {
-      id: "DictPro",
-      name: Scratch.translate("Dictionaries Pro"),
+      id: mint.manifest.get("id"),
+      name: Scratch.translate(mint.manifest.get("name")),
       blocks: [
         {
           opcode: "setValue",
