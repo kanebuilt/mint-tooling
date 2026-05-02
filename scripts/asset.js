@@ -64,7 +64,7 @@ const addAsset = (sourcePath, destName) => {
 
   if (!sourcePath) {
     fail("No source file specified.");
-    fail("Usage: npm run asset:add -- <source-file> [dest-name]");
+    fail("Usage: pnpm asset:add -- <source-file> [dest-name]");
     process.exitCode = 1;
     return;
   }
@@ -108,7 +108,7 @@ const removeAsset = (assetName) => {
 
   if (!assetName) {
     fail("No asset name specified.");
-    fail("Usage: npm run asset:remove -- <asset-name>");
+    fail("Usage: pnpm asset:remove -- <asset-name>");
     process.exitCode = 1;
     return;
   }
