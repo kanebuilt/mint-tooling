@@ -39,7 +39,7 @@ If your code requests a missing key, the build fails and reports the missing ref
 
 ## Keeping versions in sync
 
-`build.js` reads the version from `package.json` and uses it when generating the bundle. It does not overwrite `src/manifest.json` on disk; the adjustment is applied in-memory during the build, so your source manifest file remains unchanged.
+Mint respects the version declared in `src/manifest.json`. If a version is present there, the build uses it; otherwise the build falls back to the version in `package.json`. The build does not modify `src/manifest.json` on disk — any adjustment is applied in-memory during bundle generation.
 
 ## Best practices
 
