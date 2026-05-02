@@ -19,7 +19,7 @@ These scripts are designed for the project itself and are called from `package.j
 The project defines these commands in `package.json`:
 
 - `pnpm build` - run `node scripts/build.js`
-- `pnpm init` - run `node scripts/init.js`
+- `pnpm run init` - run `node scripts/init.js`
 - `pnpm asset:list` - run `node scripts/asset.js list`
 - `pnpm asset:add` - run `node scripts/asset.js add`
 - `pnpm asset:remove` - run `node scripts/asset.js remove`

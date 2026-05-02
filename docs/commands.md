@@ -9,8 +9,8 @@ The package scripts in `package.json` are the easiest way to use Mint.
 - `pnpm build`
   - Runs `node scripts/build.js`
   - Bundles your extension from `src/` into `dist/`
-- `pnpm init`
-  - Runs `node scripts/init.js`
+- `pnpm run init`
+  - Runs `node scripts/init.js` (defined in package.json)
   - Prompts for metadata and creates a minimal extension entry point
 - `pnpm asset:list`
   - Runs `node scripts/asset.js list`
@@ -68,7 +68,7 @@ node scripts/asset.js remove icon.png
 
 A typical Mint workflow looks like this:
 
-1. `pnpm init` to set project metadata and create a starter extension
+1. `pnpm run init` to set project metadata and create a starter extension
 2. `pnpm asset:add` to add files needed by the extension
 3. `pnpm build` to generate `dist/` output
 4. `pnpm lint` and `pnpm format` to keep code clean

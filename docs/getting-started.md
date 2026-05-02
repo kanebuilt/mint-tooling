@@ -4,7 +4,7 @@ This document helps you start using Mint quickly.
 
 ## What you need
 
-- Node.js 20+ or 22+ or 24+
+- Node.js 20.19.0+, 22.13.0+, or 24+ (see package.json "engines.node")
 - `pnpm` (Mint uses `pnpm@10.32.1` via Corepack)
 - A terminal with access to the project folder
 
@@ -25,7 +25,9 @@ Mint includes an initialization script that updates metadata and creates a minim
 Run:
 
 ```bash
-pnpm init
+pnpm run init
+# or
+node scripts/init.js
 ```
 
 The script asks for:

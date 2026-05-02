@@ -39,8 +39,7 @@ If your code requests a missing key, the build fails and reports the missing ref
 
 ## Keeping versions in sync
 
-`build.js` reads the version from `package.json` and updates `src/manifest.json` before bundling.
-That means the manifest version in your final extension always matches the package version.
+`build.js` reads the version from `package.json` and uses it when generating the bundle. It does not overwrite `src/manifest.json` on disk; the adjustment is applied in-memory during the build, so your source manifest file remains unchanged.
 
 ## Best practices
 
