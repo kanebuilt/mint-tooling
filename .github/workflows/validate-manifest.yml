@@ -1,0 +1,90 @@
+name: Validate Manifest
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Enable Corepack so pnpm is available for the lockfile integrity check
+      - name: Setup pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.32.1 --activate
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22.x"
+          cache: "pnpm"
+          cache-dependency-path: pnpm-lock.yaml
+
+      # Check 1: versions in src/manifest.json and package.json must match
+      - name: Check version consistency
+        run: |
+          MANIFEST_VERSION=$(node -e "process.stdout.write(String(require('./src/manifest.json').version ?? ''))")
+          PACKAGE_VERSION=$(node -e "process.stdout.write(String(require('./package.json').version ?? ''))")
+
+          echo "src/manifest.json version: $MANIFEST_VERSION"
+          echo "package.json version:      $PACKAGE_VERSION"
+
+          if [ -z "$MANIFEST_VERSION" ]; then
+            # No version in manifest is allowed (build falls back to package.json).
+            # The version-bump check in the next step uses only package.json, so it still works.
+            echo "::warning::src/manifest.json does not declare a version field; the build will fall back to package.json. Consider adding a version to src/manifest.json."
+          elif [ "$MANIFEST_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::Version mismatch: src/manifest.json has \"$MANIFEST_VERSION\" but package.json has \"$PACKAGE_VERSION\". Please keep them in sync."
+            exit 1
+          else
+            echo "Versions match: $MANIFEST_VERSION"
+          fi
+
+      # Check 2: if src/ changed, the version must be bumped vs the base branch
+      - name: Check version bump on src/ changes
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          SRC_CHANGES=$(git diff --name-only "$BASE_SHA" "$HEAD_SHA" -- src/)
+
+          if [ -z "$SRC_CHANGES" ]; then
+            echo "No changes in src/, skipping version bump check."
+            exit 0
+          fi
+
+          echo "Changes detected in src/:"
+          echo "$SRC_CHANGES"
+
+          BASE_VERSION=$(git show "$BASE_SHA:package.json" | node -e "let d=''; process.stdin.on('data',c=>d+=c).on('end',()=>process.stdout.write(JSON.parse(d).version ?? ''))")
+          CURRENT_VERSION=$(node -e "process.stdout.write(String(require('./package.json').version ?? ''))")
+
+          echo "Base branch version: $BASE_VERSION"
+          echo "Current version:     $CURRENT_VERSION"
+
+          if [ "$BASE_VERSION" = "$CURRENT_VERSION" ]; then
+            echo "::error::Version not bumped: src/ files changed but the version remains \"$CURRENT_VERSION\". Please bump the version in both src/manifest.json and package.json."
+            exit 1
+          fi
+
+          echo "Version bumped: $BASE_VERSION -> $CURRENT_VERSION"
+
+      # Check 3: pnpm-lock.yaml must be present and in sync with package.json
+      - name: Verify pnpm-lock.yaml integrity
+        run: |
+          if [ ! -f pnpm-lock.yaml ]; then
+            echo "::error::pnpm-lock.yaml is missing. Please commit the lockfile."
+            exit 1
+          fi
+          pnpm install --frozen-lockfile
+          echo "pnpm-lock.yaml is in sync with package.json."
