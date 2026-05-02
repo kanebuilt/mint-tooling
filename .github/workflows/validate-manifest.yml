@@ -73,18 +73,22 @@ jobs:
           echo "Current version:     $CURRENT_VERSION"
 
           if [ "$BASE_VERSION" = "$CURRENT_VERSION" ]; then
-            echo "::error::Version not bumped: src/ files changed but the version remains \"$CURRENT_VERSION\". Please bump the version in both src/manifest.json and package.json."
+            echo "::error::Version not bumped: src/ files changed but the version in package.json remains \"$CURRENT_VERSION\". Please bump the version in package.json (and in src/manifest.json if it declares an explicit version)."
             exit 1
           fi
 
           echo "Version bumped: $BASE_VERSION -> $CURRENT_VERSION"
 
-      # Check 3: pnpm-lock.yaml must be present and in sync with package.json
+      # Check 3: pnpm-lock.yaml must be committed and must exactly match package.json
       - name: Verify pnpm-lock.yaml integrity
         run: |
           if [ ! -f pnpm-lock.yaml ]; then
             echo "::error::pnpm-lock.yaml is missing. Please commit the lockfile."
             exit 1
           fi
-          pnpm install --frozen-lockfile
+          pnpm install --no-frozen-lockfile
+          if ! git diff --exit-code -- pnpm-lock.yaml; then
+            echo "::error::pnpm-lock.yaml is out of sync with package.json. Please run 'pnpm install' locally and commit the updated lockfile."
+            exit 1
+          fi
           echo "pnpm-lock.yaml is in sync with package.json."
