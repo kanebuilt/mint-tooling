@@ -8,6 +8,7 @@ const { execSync } = require("child_process");
 const rootDir = path.resolve(__dirname, "..");
 const srcDir = path.join(rootDir, "src");
 const distDir = path.join(rootDir, "dist");
+const assetsDir = path.join(rootDir, "assets");
 const manifestPath = path.join(srcDir, "manifest.json");
 const packagePath = path.join(rootDir, "package.json");
 
@@ -28,6 +29,88 @@ try {
 } catch {
   gitRemote = null;
 }
+
+const getMimeType = (filePath) => {
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeTypes = {
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".gif": "image/gif",
+    ".webp": "image/webp",
+    ".ico": "image/x-icon",
+    ".mp3": "audio/mpeg",
+    ".wav": "audio/wav",
+    ".ogg": "audio/ogg",
+    ".mp4": "video/mp4",
+    ".webm": "video/webm",
+    ".json": "application/json",
+    ".txt": "text/plain",
+    ".css": "text/css",
+    ".html": "text/html",
+  };
+  return mimeTypes[ext] || "application/octet-stream";
+};
+
+const walkAssets = (dir, baseDir = dir) => {
+  if (!fs.existsSync(dir)) return [];
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...walkAssets(fullPath, baseDir));
+    } else if (entry.isFile()) {
+      files.push(path.relative(baseDir, fullPath).replace(/\\/g, "/"));
+    }
+  }
+
+  return files;
+};
+
+const buildAssetMap = () => {
+  const assetFiles = walkAssets(assetsDir);
+  const assetMap = {};
+  for (const file of assetFiles) {
+    const filePath = path.join(assetsDir, file);
+    const data = fs.readFileSync(filePath);
+    const mimeType = getMimeType(file);
+    assetMap[file] = `data:${mimeType};base64,${data.toString("base64")}`;
+  }
+  return assetMap;
+};
+
+const collectMintAssetGetCalls = (sourceFile) => {
+  const code = fs.readFileSync(path.join(srcDir, sourceFile), "utf8");
+  const ast = parse(code, {
+    sourceType: "module",
+    plugins: ["classProperties", "optionalChaining", "nullishCoalescing"],
+  });
+
+  const names = [];
+  walkNodes(ast, (node) => {
+    // Match: mint.asset.get("...")
+    if (
+      node.type === "CallExpression" &&
+      node.callee?.type === "MemberExpression" &&
+      node.callee.property.type === "Identifier" &&
+      node.callee.property.name === "get" &&
+      node.callee.object?.type === "MemberExpression" &&
+      node.callee.object.property.type === "Identifier" &&
+      node.callee.object.property.name === "asset" &&
+      node.callee.object.object?.type === "Identifier" &&
+      node.callee.object.object.name === "mint" &&
+      node.arguments.length > 0 &&
+      node.arguments[0].type === "StringLiteral"
+    ) {
+      names.push({ name: node.arguments[0].value, file: sourceFile });
+    }
+  });
+
+  return names;
+};
 
 const walkSourceFiles = (dir, baseDir = dir) => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -181,6 +264,34 @@ const buildBundle = async () => {
   const unwrappedCode = unwrapBundleIIFE(cleanedCode);
   const className = detectClassName(unwrappedCode, capturedClassName);
 
+  const assetMap = buildAssetMap();
+  const assetCount = Object.keys(assetMap).length;
+
+  // Verify every static mint.asset.get("...") call in src/ refers to an existing asset.
+  const missingRefs = [];
+  for (const sourceFile of sourceFiles) {
+    for (const ref of collectMintAssetGetCalls(sourceFile)) {
+      if (!Object.prototype.hasOwnProperty.call(assetMap, ref.name)) {
+        missingRefs.push({ asset: ref.name, file: ref.file });
+      }
+    }
+  }
+  if (missingRefs.length > 0) {
+    for (const { asset, file } of missingRefs) {
+      console.error(`\x1b[31m✗\x1b[0m Missing asset "${asset}" referenced in ${file}`);
+    }
+    throw new Error(`Build failed: ${missingRefs.length} missing asset reference(s)`);
+  }
+
+  // JSON.stringify produces safely-escaped output (all special chars are escaped),
+  // making it safe to embed as a JavaScript object literal.
+  // Object.assign into Object.create(null) avoids prototype-property pollution
+  // (e.g. "toString", "__proto__") so only own asset keys return values.
+  const mintDefinition =
+    `const __mintAssets__ = Object.assign(Object.create(null), ${JSON.stringify(assetMap)});\n` +
+    'const mint = { asset: { get: function(name) { return Object.prototype.hasOwnProperty.call(__mintAssets__, name) ? __mintAssets__[name] : ""; } } };';
+  const codeWithMint = `${mintDefinition}\n${unwrappedCode}`;
+
   const headerLines = [
     `// Name: ${name}`,
     `// ID: ${id}`,
@@ -203,7 +314,7 @@ const buildBundle = async () => {
 (function (Scratch) {
     'use strict';
 
-${unwrappedCode
+${codeWithMint
   .split("\n")
   .map((line) => (line ? `    ${line}` : ""))
   .join("\n")}
@@ -216,7 +327,8 @@ ${unwrappedCode
   const outputPath = path.join(distDir, `${id || "extension"}.js`);
   fs.writeFileSync(outputPath, output, "utf8");
 
-  console.log(`✓ Bundled ${name} successfully!`);
+  const assetSuffix = assetCount > 0 ? ` with ${assetCount} asset(s)` : "";
+  console.log(`✓ Bundled ${name} successfully${assetSuffix}!`);
 };
 
 buildBundle().catch((error) => {

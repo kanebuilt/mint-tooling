@@ -92,3 +92,20 @@ declare namespace Scratch.extensions {
    */
   function register(extensionObj: any): void;
 }
+
+/**
+ * The Mint API, available in all extension source files.
+ * Assets are embedded into the bundle at build time from the `assets/` directory.
+ */
+declare const mint: {
+  asset: {
+    /**
+     * Returns the data URI for the given asset.
+     * Assets are stored in the `assets/` folder.
+     * @example mint.asset.get('icon.svg') // returns "data:image/svg+xml;base64,..."
+     * @example mint.asset.get('icons/index.svg') // supports subfolders
+     * @returns The data URI string, or an empty string if the asset is not found.
+     */
+    get(name: string): string;
+  };
+};

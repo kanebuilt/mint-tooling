@@ -136,6 +136,7 @@ module.exports = [
         ScratchBlocks: "readonly",
         ScratchExtensions: "readonly",
         scaffolding: "readonly",
+        mint: "readonly",
       },
       sourceType: "module",
     },

@@ -1,6 +1,6 @@
 {
   "name": "@kanebuilt/mint-tooling",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Develop TurboWarp extensions using bundling",
   "homepage": "https://github.com/kanebuilt/mint-tooling",
   "bugs": {
@@ -22,6 +22,9 @@
   "scripts": {
     "build": "node scripts/build.js",
     "init": "node scripts/init.js",
+    "asset:list": "node scripts/asset.js list",
+    "asset:add": "node scripts/asset.js add",
+    "asset:remove": "node scripts/asset.js remove",
     "test": "echo \"Error: no test specified\" && exit 1",
     "format": "prettier --write .",
     "lint": "eslint ."
