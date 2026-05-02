@@ -17,7 +17,7 @@ const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
 
 // Logging helpers to match other scripts (init.js)
 const _info = (message) => console.log(`\x1b[36mℹ\x1b[0m ${message}`);
-const warn = (message) => console.log(`\x1b[33m⚠\x1b[0m ${message}`);
+const warn = (message) => console.warn(`\x1b[33m⚠\x1b[0m ${message}`);
 const _fail = (message) => console.error(`\x1b[31m✗\x1b[0m ${message}`);
 
 const { name, id, description, author, authorLink, license } = manifest;
@@ -305,7 +305,7 @@ const buildBundle = async () => {
   }
   if (missingRefs.length > 0) {
     for (const { asset, file } of missingRefs) {
-      console.error(`\x1b[31m✗\x1b[0m Missing asset "${asset}" referenced in ${file}`);
+      _fail(`Missing asset "${asset}" referenced in ${file}`);
     }
     throw new Error(`Build failed: ${missingRefs.length} missing asset reference(s)`);
   }
@@ -323,7 +323,7 @@ const buildBundle = async () => {
   }
   if (missingManifestRefs.length > 0) {
     for (const { key, file } of missingManifestRefs) {
-      console.error(`\x1b[31m✗\x1b[0m Missing manifest key "${key}" referenced in ${file}`);
+      _fail(`Missing manifest key "${key}" referenced in ${file}`);
     }
     throw new Error(
       `Build failed: ${missingManifestRefs.length} missing manifest key reference(s)`
@@ -343,7 +343,7 @@ const buildBundle = async () => {
   const headerLines = [
     `// Name: ${name}`,
     `// ID: ${id}`,
-    `// Version: ${packageVersion}`,
+    `// Version: ${manifest.version}`,
     `// Description: ${description}`,
     `// By: ${author} <${authorLink}>`,
     `// License: ${license}`,
@@ -376,10 +376,10 @@ ${codeWithMint
   fs.writeFileSync(outputPath, output, "utf8");
 
   const assetSuffix = assetCount > 0 ? ` with ${assetCount} asset(s)` : "";
-  console.log(`✓ Bundled ${name} successfully${assetSuffix}!`);
+  _info(`✓ Bundled ${name} successfully${assetSuffix}!`);
 };
 
 buildBundle().catch((error) => {
-  console.error(error);
+  _fail(error && error.stack ? error.stack : String(error));
   process.exit(1);
 });
