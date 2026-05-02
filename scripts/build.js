@@ -82,7 +82,7 @@ const buildAssetMap = () => {
   return assetMap;
 };
 
-const collectMintAssetGetCalls = (sourceFile) => {
+const collectMintPropertyGetCalls = (sourceFile, propertyName) => {
   const code = fs.readFileSync(path.join(srcDir, sourceFile), "utf8");
   const ast = parse(code, {
     sourceType: "module",
@@ -91,7 +91,7 @@ const collectMintAssetGetCalls = (sourceFile) => {
 
   const names = [];
   walkNodes(ast, (node) => {
-    // Match: mint.asset.get("...")
+    // Match: mint.<propertyName>.get("...")
     if (
       node.type === "CallExpression" &&
       node.callee?.type === "MemberExpression" &&
@@ -99,37 +99,7 @@ const collectMintAssetGetCalls = (sourceFile) => {
       node.callee.property?.name === "get" &&
       node.callee.object?.type === "MemberExpression" &&
       node.callee.object.property?.type === "Identifier" &&
-      node.callee.object.property?.name === "asset" &&
-      node.callee.object.object?.type === "Identifier" &&
-      node.callee.object.object.name === "mint" &&
-      node.arguments.length > 0 &&
-      node.arguments[0].type === "StringLiteral"
-    ) {
-      names.push({ name: node.arguments[0].value, file: sourceFile });
-    }
-  });
-
-  return names;
-};
-
-const collectMintManifestGetCalls = (sourceFile) => {
-  const code = fs.readFileSync(path.join(srcDir, sourceFile), "utf8");
-  const ast = parse(code, {
-    sourceType: "module",
-    plugins: ["classProperties", "optionalChaining", "nullishCoalescing"],
-  });
-
-  const names = [];
-  walkNodes(ast, (node) => {
-    // Match: mint.manifest.get("...")
-    if (
-      node.type === "CallExpression" &&
-      node.callee?.type === "MemberExpression" &&
-      node.callee.property?.type === "Identifier" &&
-      node.callee.property?.name === "get" &&
-      node.callee.object?.type === "MemberExpression" &&
-      node.callee.object.property?.type === "Identifier" &&
-      node.callee.object.property?.name === "manifest" &&
+      node.callee.object.property?.name === propertyName &&
       node.callee.object.object?.type === "Identifier" &&
       node.callee.object.object.name === "mint" &&
       node.arguments.length > 0 &&
@@ -143,9 +113,9 @@ const collectMintManifestGetCalls = (sourceFile) => {
 };
 
 const buildManifestMap = () => {
-  const manifestMap = {};
+  const manifestMap = Object.create(null);
   for (const [key, value] of Object.entries(manifest)) {
-    if (typeof value === "string" || typeof value === "number") {
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
       manifestMap[key] = String(value);
     }
   }
@@ -310,7 +280,7 @@ const buildBundle = async () => {
   // Verify every static mint.asset.get("...") call in src/ refers to an existing asset.
   const missingRefs = [];
   for (const sourceFile of sourceFiles) {
-    for (const ref of collectMintAssetGetCalls(sourceFile)) {
+    for (const ref of collectMintPropertyGetCalls(sourceFile, "asset")) {
       if (!Object.prototype.hasOwnProperty.call(assetMap, ref.name)) {
         missingRefs.push({ asset: ref.name, file: ref.file });
       }
@@ -328,7 +298,7 @@ const buildBundle = async () => {
   // Verify every static mint.manifest.get("...") call in src/ refers to an existing manifest key.
   const missingManifestRefs = [];
   for (const sourceFile of sourceFiles) {
-    for (const ref of collectMintManifestGetCalls(sourceFile)) {
+    for (const ref of collectMintPropertyGetCalls(sourceFile, "manifest")) {
       if (!Object.prototype.hasOwnProperty.call(manifestMap, ref.name)) {
         missingManifestRefs.push({ key: ref.name, file: ref.file });
       }
